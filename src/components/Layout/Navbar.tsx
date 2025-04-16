@@ -16,12 +16,17 @@ const Navbar = () => {
   const { user, logout, isLoggedIn } = useAuth();
   const navigate = useNavigate();
 
+  const handleLogout = async () => {
+    await logout();
+    navigate('/');
+  };
+
   return (
     <nav className="w-full border-b">
       <div className="container flex h-16 items-center justify-between">
         <Link to={isLoggedIn ? '/dashboard' : '/'} className="flex items-center space-x-2">
           <Keyboard className="h-6 w-6 text-typeace-purple" />
-          <span className="text-xl font-bold">JCA Type-Ace</span>
+          <span className="text-xl font-bold">TypingKaro</span>
         </Link>
 
         <div className="flex items-center space-x-4">
@@ -44,10 +49,7 @@ const Navbar = () => {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem 
                   className="text-destructive focus:text-destructive cursor-pointer"
-                  onClick={() => {
-                    logout();
-                    navigate('/');
-                  }}
+                  onClick={handleLogout}
                 >
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Log out</span>

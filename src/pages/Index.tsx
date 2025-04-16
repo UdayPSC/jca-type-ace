@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -22,7 +21,7 @@ const Index = () => {
         <div className="w-full md:w-1/2 space-y-6">
           <div className="flex items-center">
             <Keyboard className="h-10 w-10 text-typeace-purple mr-3" />
-            <h1 className="text-3xl md:text-4xl font-bold">JCA Type-Ace</h1>
+            <h1 className="text-3xl md:text-4xl font-bold">TypingKaro</h1>
           </div>
           <h2 className="text-2xl md:text-3xl font-semibold text-gray-800">
             Master Your Typing for the <span className="text-typeace-purple">SCI JCA Exam</span>
@@ -77,7 +76,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="border-t py-6 bg-gray-50">
         <div className="container text-center text-gray-500 text-sm">
-          © 2023 JCA Type-Ace. Designed for SCI JCA exam candidates.
+          © 2023 TypingKaro. Designed for SCI JCA exam candidates.
         </div>
       </footer>
     </div>

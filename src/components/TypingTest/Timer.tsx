@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Progress } from '@/components/ui/progress';
 import { Clock, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -13,22 +13,32 @@ interface TimerProps {
 const Timer = ({ duration, onTimeUp, className }: TimerProps) => {
   const [timeLeft, setTimeLeft] = useState(duration);
   const [isRunning, setIsRunning] = useState(true);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
   
+  // Use useEffect with a proper interval to ensure consistent timing
   useEffect(() => {
     if (!isRunning) return;
     
-    if (timeLeft <= 0) {
-      onTimeUp();
-      setIsRunning(false);
-      return;
-    }
-    
-    const timerId = setTimeout(() => {
-      setTimeLeft(timeLeft - 1);
+    // Start the timer
+    timerRef.current = setInterval(() => {
+      setTimeLeft(prevTime => {
+        const newTime = prevTime - 1;
+        if (newTime <= 0) {
+          clearInterval(timerRef.current as NodeJS.Timeout);
+          onTimeUp();
+          return 0;
+        }
+        return newTime;
+      });
     }, 1000);
     
-    return () => clearTimeout(timerId);
-  }, [timeLeft, isRunning, onTimeUp]);
+    // Cleanup function to clear interval
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, [isRunning, onTimeUp]);
   
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);

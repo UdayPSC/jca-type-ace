@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -12,6 +11,7 @@ import { toast } from '@/components/ui/sonner';
 import { AlertTriangle, Save, ChevronLeft, CheckCircle2 } from 'lucide-react';
 
 const TestPage = () => {
+  
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { isLoggedIn } = useAuth();
@@ -72,9 +72,11 @@ const TestPage = () => {
   }
   
   const handleProgress = (progressValue: number, correct: number, errorCount: number) => {
-    setProgress(progressValue);
-    setCorrectChars(correct);
-    setErrors(errorCount);
+    if (!testCompleted) {
+      setProgress(progressValue);
+      setCorrectChars(correct);
+      setErrors(errorCount);
+    }
   };
   
   const calculateResults = (typed: string) => {
@@ -126,8 +128,10 @@ const TestPage = () => {
       ...results,
       testId: id
     });
+    toast.success('Results saved successfully!');
     navigate('/dashboard');
   };
+  
   
   return (
     <div className="min-h-screen flex flex-col">
@@ -203,7 +207,7 @@ const TestPage = () => {
         <div className="grid grid-cols-1 gap-8">
           <div className="border rounded-lg p-6 bg-white">
             <h2 className="text-lg font-medium mb-4">Sample Text</h2>
-            <div className="sample-text bg-gray-50 border">
+            <div className="sample-text bg-gray-50 border p-4 rounded">
               {test.content}
             </div>
           </div>
@@ -221,7 +225,7 @@ const TestPage = () => {
       
       <footer className="border-t py-6 bg-gray-50">
         <div className="container text-center text-gray-500 text-sm">
-          © 2023 JCA Type-Ace. Designed for SCI JCA exam candidates.
+          © 2023 TypingKaro. Designed for SCI JCA exam candidates.
         </div>
       </footer>
     </div>
