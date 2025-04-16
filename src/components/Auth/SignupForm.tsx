@@ -15,6 +15,7 @@ interface SignupFormProps {
 const SignupForm = ({ onToggleForm }: SignupFormProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const { signup, isLoading, error } = useAuth();
@@ -38,7 +39,7 @@ const SignupForm = ({ onToggleForm }: SignupFormProps) => {
     
     if (!validatePasswords()) return;
     
-    await signup(email, password);
+    await signup(email, password, name);
     navigate('/dashboard');
   };
 
@@ -50,6 +51,16 @@ const SignupForm = ({ onToggleForm }: SignupFormProps) => {
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="name">Full Name</Label>
+            <Input
+              id="name"
+              type="text"
+              placeholder="Your Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </div>
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input

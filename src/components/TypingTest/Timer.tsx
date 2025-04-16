@@ -68,7 +68,6 @@ const Timer = ({ duration, onTimeUp, className }: TimerProps) => {
           "h-2 transition-all",
           isWarning ? "bg-amber-200" : "bg-gray-200"
         )}
-        indicatorClassName={isWarning ? "bg-amber-500" : "bg-typeace-purple"}
       />
     </div>
   );

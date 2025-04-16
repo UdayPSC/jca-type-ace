@@ -3,39 +3,7 @@ import { useState, useEffect } from 'react';
 import { TypingTest, TestAttempt } from '@/lib/types';
 import { useAuth } from './useAuth';
 import { toast } from '@/components/ui/sonner';
-
-// Mock data
-const mockTests: TypingTest[] = [
-  {
-    id: '1',
-    title: 'Basic SCI JCA Test - Regulations Summary',
-    content: 'The Financial Conduct Authority (FCA) regulates the financial services industry in the UK. Its role includes protecting consumers, keeping the industry stable, and promoting healthy competition between financial service providers. The FCA has the power to regulate conduct related to the marketing of financial products.',
-    category: 'Regulations',
-    difficulty: 'easy',
-    duration: 180, // 3 minutes
-    createdAt: '2023-01-15T10:30:00Z',
-  },
-  {
-    id: '2',
-    title: 'Intermediate SCI JCA Test - Financial Concepts',
-    content: 'Investment products can be classified according to their risk profile and expected returns. Bonds typically offer lower risk and lower returns compared to equities. Investment funds can contain a mixture of different asset classes, providing diversification benefits to investors. The correlation between assets in a portfolio is an important consideration for risk management.',
-    category: 'Financial Concepts',
-    difficulty: 'medium',
-    duration: 300, // 5 minutes
-    createdAt: '2023-02-20T14:45:00Z',
-  },
-  {
-    id: '3',
-    title: 'Advanced SCI JCA Test - Legal Documentation',
-    content: 'When preparing legal documentation for financial products, it is essential to ensure compliance with all relevant regulations and guidelines. The documentation should clearly disclose all material information that could influence an investor\'s decision. Risk factors must be prominently displayed and explained in plain language that can be understood by the target investor audience. The terms and conditions must not contain unfair or misleading clauses.',
-    category: 'Legal',
-    difficulty: 'hard',
-    duration: 600, // 10 minutes
-    createdAt: '2023-03-10T09:15:00Z',
-  },
-];
-
-const mockAttempts: TestAttempt[] = [];
+import { supabase } from '@/integrations/supabase/client';
 
 export const useTests = () => {
   const [tests, setTests] = useState<TypingTest[]>([]);
@@ -46,10 +14,35 @@ export const useTests = () => {
   // Fetch all available tests
   useEffect(() => {
     const fetchTests = async () => {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 800));
-      setTests(mockTests);
-      setLoading(false);
+      try {
+        setLoading(true);
+        const { data, error } = await supabase
+          .from('typing_tests')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        if (error) {
+          throw error;
+        }
+        
+        // Transform to match our TypingTest interface
+        const formattedTests: TypingTest[] = data.map(test => ({
+          id: test.id,
+          title: test.title,
+          content: test.content,
+          category: test.category,
+          difficulty: test.difficulty as 'easy' | 'medium' | 'hard',
+          duration: test.duration,
+          createdAt: test.created_at
+        }));
+        
+        setTests(formattedTests);
+      } catch (error) {
+        console.error('Error fetching tests:', error);
+        toast.error('Failed to fetch typing tests');
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchTests();
@@ -63,14 +56,38 @@ export const useTests = () => {
     }
 
     const fetchAttempts = async () => {
-      setLoading(true);
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Filter attempts for current user
-      const userAttempts = mockAttempts.filter(a => a.userId === user.id);
-      setAttempts(userAttempts);
-      setLoading(false);
+      try {
+        setLoading(true);
+        const { data, error } = await supabase
+          .from('test_attempts')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('completed_at', { ascending: false });
+        
+        if (error) {
+          throw error;
+        }
+        
+        // Transform to match our TestAttempt interface
+        const formattedAttempts: TestAttempt[] = data.map(attempt => ({
+          id: attempt.id,
+          userId: attempt.user_id,
+          testId: attempt.test_id,
+          wpm: attempt.wpm,
+          accuracy: attempt.accuracy,
+          cpm: attempt.cpm,
+          mistypedWords: attempt.mistyped_words,
+          completedAt: attempt.completed_at,
+          duration: attempt.duration
+        }));
+        
+        setAttempts(formattedAttempts);
+      } catch (error) {
+        console.error('Error fetching attempts:', error);
+        toast.error('Failed to fetch your test attempts');
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchAttempts();
@@ -88,23 +105,46 @@ export const useTests = () => {
       return null;
     }
 
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 800));
-
-    const newAttempt: TestAttempt = {
-      id: `attempt-${Date.now()}`,
-      userId: user.id,
-      testId,
-      completedAt: new Date().toISOString(),
-      ...results
-    };
-
-    // In a real app, this would be an API call
-    mockAttempts.push(newAttempt);
-    setAttempts(prev => [...prev, newAttempt]);
-    
-    toast.success('Test results saved successfully');
-    return newAttempt;
+    try {
+      const { data, error } = await supabase
+        .from('test_attempts')
+        .insert({
+          test_id: testId,
+          user_id: user.id,
+          wpm: results.wpm,
+          accuracy: results.accuracy,
+          cpm: results.cpm,
+          mistyped_words: results.mistypedWords,
+          duration: results.duration
+        })
+        .select()
+        .single();
+      
+      if (error) {
+        throw error;
+      }
+      
+      // Format the attempt to match our interface
+      const newAttempt: TestAttempt = {
+        id: data.id,
+        userId: data.user_id,
+        testId: data.test_id,
+        wpm: data.wpm,
+        accuracy: data.accuracy,
+        cpm: data.cpm,
+        mistypedWords: data.mistyped_words,
+        completedAt: data.completed_at,
+        duration: data.duration
+      };
+      
+      setAttempts(prev => [newAttempt, ...prev]);
+      toast.success('Test results saved successfully');
+      return newAttempt;
+    } catch (error) {
+      console.error('Error saving attempt:', error);
+      toast.error('Failed to save test results');
+      return null;
+    }
   };
 
   // Get user's attempts for a specific test

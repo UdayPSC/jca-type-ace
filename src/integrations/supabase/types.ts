@@ -9,7 +9,101 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          created_at: string
+          id: string
+          name: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      test_attempts: {
+        Row: {
+          accuracy: number
+          completed_at: string
+          cpm: number
+          duration: number
+          id: string
+          mistyped_words: number
+          test_id: string
+          user_id: string
+          wpm: number
+        }
+        Insert: {
+          accuracy: number
+          completed_at?: string
+          cpm: number
+          duration: number
+          id?: string
+          mistyped_words: number
+          test_id: string
+          user_id: string
+          wpm: number
+        }
+        Update: {
+          accuracy?: number
+          completed_at?: string
+          cpm?: number
+          duration?: number
+          id?: string
+          mistyped_words?: number
+          test_id?: string
+          user_id?: string
+          wpm?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "test_attempts_test_id_fkey"
+            columns: ["test_id"]
+            isOneToOne: false
+            referencedRelation: "typing_tests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      typing_tests: {
+        Row: {
+          category: string
+          content: string
+          created_at: string
+          difficulty: string
+          duration: number
+          id: string
+          title: string
+        }
+        Insert: {
+          category: string
+          content: string
+          created_at?: string
+          difficulty: string
+          duration: number
+          id?: string
+          title: string
+        }
+        Update: {
+          category?: string
+          content?: string
+          created_at?: string
+          difficulty?: string
+          duration?: number
+          id?: string
+          title?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

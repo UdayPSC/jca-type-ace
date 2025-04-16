@@ -35,7 +35,7 @@ const TestPage = () => {
   
   useEffect(() => {
     if (test) {
-      document.title = `${test.title} | JCA Type-Ace`;
+      document.title = `${test.title} | TypingKaro`;
     }
   }, [test]);
   
@@ -120,9 +120,12 @@ const TestPage = () => {
   };
   
   const handleSaveResults = async () => {
-    if (!results) return;
+    if (!results || !id) return;
     
-    await saveAttempt(test.id, results);
+    await saveAttempt(id, {
+      ...results,
+      testId: id
+    });
     navigate('/dashboard');
   };
   
