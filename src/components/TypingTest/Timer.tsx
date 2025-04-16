@@ -14,23 +14,27 @@ const Timer = ({ duration, onTimeUp, className }: TimerProps) => {
   const [timeLeft, setTimeLeft] = useState(duration);
   const [isRunning, setIsRunning] = useState(true);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const startTimeRef = useRef<number>(Date.now());
   
-  // Use useEffect with a proper interval to ensure consistent timing
+  // Use useEffect with Date.now() instead of interval for more accurate timing
   useEffect(() => {
     if (!isRunning) return;
     
+    // Record start time
+    startTimeRef.current = Date.now();
+    
     // Start the timer
     timerRef.current = setInterval(() => {
-      setTimeLeft(prevTime => {
-        const newTime = prevTime - 1;
-        if (newTime <= 0) {
-          clearInterval(timerRef.current as NodeJS.Timeout);
-          onTimeUp();
-          return 0;
-        }
-        return newTime;
-      });
-    }, 1000);
+      const elapsedSeconds = Math.floor((Date.now() - startTimeRef.current) / 1000);
+      const newTimeLeft = Math.max(0, duration - elapsedSeconds);
+      
+      setTimeLeft(newTimeLeft);
+      
+      if (newTimeLeft <= 0) {
+        clearInterval(timerRef.current as NodeJS.Timeout);
+        onTimeUp();
+      }
+    }, 100); // Update more frequently for smoother countdown
     
     // Cleanup function to clear interval
     return () => {
@@ -38,7 +42,7 @@ const Timer = ({ duration, onTimeUp, className }: TimerProps) => {
         clearInterval(timerRef.current);
       }
     };
-  }, [isRunning, onTimeUp]);
+  }, [isRunning, duration, onTimeUp]);
   
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);

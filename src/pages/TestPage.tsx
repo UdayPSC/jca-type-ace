@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -14,7 +15,7 @@ const TestPage = () => {
   
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, user } = useAuth();
   const { getTestById, saveAttempt } = useTests();
   
   const [testCompleted, setTestCompleted] = useState(false);
@@ -24,11 +25,13 @@ const TestPage = () => {
     cpm: number;
     mistypedWords: number;
     duration: number;
+    mistypedIndexes: number[];
   } | null>(null);
   
   const [progress, setProgress] = useState(0);
   const [correctChars, setCorrectChars] = useState(0);
   const [errors, setErrors] = useState(0);
+  const [mistypedIndexes, setMistypedIndexes] = useState<number[]>([]);
   const [startTime, setStartTime] = useState<Date | null>(null);
   
   const test = id ? getTestById(id) : null;
@@ -46,9 +49,12 @@ const TestPage = () => {
     }
   }, [startTime]);
   
-  if (!isLoggedIn) {
-    return <Navigate to="/" replace />;
-  }
+  // Handle logout redirect
+  useEffect(() => {
+    if (!isLoggedIn && user === null) {
+      navigate('/', { replace: true });
+    }
+  }, [isLoggedIn, user, navigate]);
   
   if (!test) {
     return (
@@ -71,11 +77,12 @@ const TestPage = () => {
     );
   }
   
-  const handleProgress = (progressValue: number, correct: number, errorCount: number) => {
+  const handleProgress = (progressValue: number, correct: number, errorCount: number, indexes: number[]) => {
     if (!testCompleted) {
       setProgress(progressValue);
       setCorrectChars(correct);
       setErrors(errorCount);
+      setMistypedIndexes(indexes);
     }
   };
   
@@ -105,7 +112,8 @@ const TestPage = () => {
       accuracy,
       cpm,
       mistypedWords,
-      duration
+      duration,
+      mistypedIndexes
     });
   };
   
@@ -125,13 +133,36 @@ const TestPage = () => {
     if (!results || !id) return;
     
     await saveAttempt(id, {
-      ...results,
+      wpm: results.wpm,
+      accuracy: results.accuracy,
+      cpm: results.cpm,
+      mistypedWords: results.mistypedWords,
+      duration: results.duration,
       testId: id
     });
     toast.success('Results saved successfully!');
     navigate('/dashboard');
   };
   
+  // Function to highlight mistyped words in the sample text
+  const renderSampleTextWithHighlights = () => {
+    if (!test || !results || !results.mistypedIndexes.length) {
+      return test?.content;
+    }
+    
+    // Create an array to hold all characters with their formatting
+    const textArray = test.content.split('').map((char, index) => {
+      const isMistyped = results.mistypedIndexes.includes(index);
+      
+      return isMistyped ? (
+        <span key={index} className="bg-red-200 text-red-800">{char}</span>
+      ) : (
+        char
+      );
+    });
+    
+    return textArray;
+  };
   
   return (
     <div className="min-h-screen flex flex-col">
@@ -208,7 +239,7 @@ const TestPage = () => {
           <div className="border rounded-lg p-6 bg-white">
             <h2 className="text-lg font-medium mb-4">Sample Text</h2>
             <div className="sample-text bg-gray-50 border p-4 rounded">
-              {test.content}
+              {testCompleted && results ? renderSampleTextWithHighlights() : test.content}
             </div>
           </div>
           

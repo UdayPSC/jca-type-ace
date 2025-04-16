@@ -1,19 +1,19 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { Keyboard, ArrowRight } from 'lucide-react';
+import { toast } from '@/components/ui/sonner';
 
 interface TypingAreaProps {
   targetText: string;
-  onProgress: (progress: number, correct: number, errors: number) => void;
+  onProgress: (progress: number, correct: number, errors: number, mistypedIndexes: number[]) => void;
   onComplete: (typed: string) => void;
   testCompleted: boolean;
 }
 
 const TypingArea = ({ targetText, onProgress, onComplete, testCompleted }: TypingAreaProps) => {
   const [typedText, setTypedText] = useState('');
-  const [cursorPosition, setCursorPosition] = useState(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [mistypedIndexes, setMistypedIndexes] = useState<number[]>([]);
   
   useEffect(() => {
     // Focus the textarea when the component mounts
@@ -30,24 +30,26 @@ const TypingArea = ({ targetText, onProgress, onComplete, testCompleted }: Typin
     // Count correct characters and errors
     let correctChars = 0;
     let errors = 0;
+    const newMistypedIndexes: number[] = [];
     
     for (let i = 0; i < typed.length; i++) {
       if (typed[i] === targetText[i]) {
         correctChars++;
       } else {
         errors++;
+        newMistypedIndexes.push(i);
       }
     }
     
-    onProgress(progress, correctChars, errors);
+    setMistypedIndexes(newMistypedIndexes);
+    onProgress(progress, correctChars, errors, newMistypedIndexes);
     
-    // Check if typing is complete
-    if (typed.length === targetText.length) {
+    // Auto-complete when 100% done
+    if (progress === 1 && !testCompleted) {
       onComplete(typed);
     }
     
-    setCursorPosition(typed.length);
-  }, [typedText, targetText, onProgress, onComplete]);
+  }, [typedText, targetText, onProgress, onComplete, testCompleted]);
   
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     if (testCompleted) return;
@@ -56,6 +58,12 @@ const TypingArea = ({ targetText, onProgress, onComplete, testCompleted }: Typin
     if (e.target.value.length <= targetText.length) {
       setTypedText(e.target.value);
     }
+  };
+  
+  // Prevent paste
+  const handlePaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    toast.error("Pasting is not allowed during the typing test");
   };
   
   return (
@@ -70,6 +78,7 @@ const TypingArea = ({ targetText, onProgress, onComplete, testCompleted }: Typin
           ref={textareaRef}
           value={typedText}
           onChange={handleChange}
+          onPaste={handlePaste}
           placeholder="Start typing here..."
           disabled={testCompleted}
           className="typing-area h-56 bg-white border-typeace-purple focus:ring-typeace-purple font-mono"
