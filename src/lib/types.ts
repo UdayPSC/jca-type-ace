@@ -30,9 +30,9 @@ export interface TestAttempt {
 export interface AuthContextType {
   user: User | null;
   isLoggedIn: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  signup: (email: string, password: string, name?: string) => Promise<void>;
-  logout: () => void;
+  login: (email: string, password: string) => Promise<boolean>;
+  signup: (email: string, password: string, name?: string) => Promise<boolean>;
+  logout: () => Promise<boolean>;
   isLoading: boolean;
   error: string | null;
 }

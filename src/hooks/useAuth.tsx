@@ -86,10 +86,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (data.user) {
         toast.success('Logged in successfully');
+        return true;
       }
+      return false;
     } catch (e: any) {
       setError(e.message);
       toast.error(e.message);
+      return false;
     } finally {
       setIsLoading(false);
     }
@@ -122,10 +125,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
         
         toast.success('Account created successfully');
+        return true;
       }
+      return false;
     } catch (e: any) {
       setError(e.message);
       toast.error(e.message);
+      return false;
     } finally {
       setIsLoading(false);
     }
@@ -136,8 +142,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     
     if (error) {
       toast.error(error.message);
+      return false;
     } else {
       toast.success('Logged out successfully');
+      return true;
     }
   };
 

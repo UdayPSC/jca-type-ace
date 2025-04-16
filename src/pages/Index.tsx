@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -76,7 +77,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="border-t py-6 bg-gray-50">
         <div className="container text-center text-gray-500 text-sm">
-          © 2023 TypingKaro. Designed for SCI JCA exam candidates.
+          © {new Date().getFullYear()} TypingKaro. Designed for SCI JCA exam candidates.
         </div>
       </footer>
     </div>

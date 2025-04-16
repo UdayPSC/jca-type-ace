@@ -39,8 +39,10 @@ const SignupForm = ({ onToggleForm }: SignupFormProps) => {
     
     if (!validatePasswords()) return;
     
-    await signup(email, password, name);
-    navigate('/dashboard');
+    const success = await signup(email, password, name);
+    if (success) {
+      navigate('/dashboard');
+    }
   };
 
   return (

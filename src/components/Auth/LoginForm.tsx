@@ -20,8 +20,10 @@ const LoginForm = ({ onToggleForm }: LoginFormProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await login(email, password);
-    navigate('/dashboard');
+    const success = await login(email, password);
+    if (success) {
+      navigate('/dashboard');
+    }
   };
 
   return (
